@@ -7,6 +7,7 @@ import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.model.Step;
 import com.ageinghippy.recipeapi.repository.RecipeRepo;
 import com.ageinghippy.recipeapi.utils.Utils;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,9 @@ public class RecipeService {
 
     @Autowired
     RecipeRepo recipeRepo;
+
+    @Autowired
+    EntityManager entityManager;
 
     @Transactional
     public Recipe createNewRecipe(Recipe recipe) throws IllegalStateException {
@@ -146,7 +150,10 @@ public class RecipeService {
 
     private Recipe saveRecipe(Recipe recipe) {
         recipe.validate();
-        recipeRepo.save(recipe);
+        recipeRepo.saveAndFlush(recipe);
+
+        //force a refresh from the database to ensure all reviews are loaded and average rating calculated
+        entityManager.refresh(recipe);
 
         Recipe savedRecipe = recipeRepo.findById(recipe.getId()).get();
         savedRecipe.generateLocationURI();

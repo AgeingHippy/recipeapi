@@ -46,6 +46,9 @@ public class Recipe {
     @JsonIgnore
     private URI locationURI;
 
+    @Transient
+    private Integer reviewRating;
+
     public void setDifficultyRating(int difficultyRating) {
         if (difficultyRating < 0 || difficultyRating > 10) {
             throw new IllegalStateException(
@@ -74,5 +77,14 @@ public class Recipe {
         } catch (URISyntaxException e) {
             // exception should stop here.
         }
+    }
+
+    @PostLoad
+    public void calculateReviewRating() {
+        Integer reviewAverage = null;
+        if (!getReviews().isEmpty()) {
+            reviewAverage = getReviews().stream().map(Review::getRating).reduce(0, Integer::sum) / getReviews().size();
+        }
+        this.reviewRating = reviewAverage;
     }
 }
