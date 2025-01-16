@@ -23,4 +23,5 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
             nativeQuery = true)
     List<Recipe> findAllWithMinimumReviewRating(int minimumReviewRating);
 
+    List<Recipe> findByDifficultyRatingLessThanEqualAndNameContaining(int maximumDifficultyRating, String name);
 }

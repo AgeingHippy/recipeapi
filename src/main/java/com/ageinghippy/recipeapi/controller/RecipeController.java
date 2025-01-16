@@ -43,9 +43,24 @@ public class RecipeController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllRecipes() {
+    public ResponseEntity<?> getAllRecipes(@RequestParam(required = false) String name,
+                                           @RequestParam(required = false) Integer maximumDifficultyRating,
+                                           @RequestParam(required = false) Integer minimumReviewRating) {
+        List<Recipe> recipes = null;
         try {
-            return ResponseEntity.ok(recipeService.getAllRecipes());
+            if (name == null && maximumDifficultyRating == null && minimumReviewRating == null) {
+                //get all - no filters applied
+                recipes = recipeService.getAllRecipes();
+            } else if (name != null && maximumDifficultyRating == null && minimumReviewRating == null) {
+                //recipes by name only
+                recipes = recipeService.getRecipesByName(name);
+            } else if (name != null && maximumDifficultyRating != null && minimumReviewRating == null) {
+                //recipes by name and difficulty rating
+                recipes = recipeService.getRecipesByNameAndMaximumDifficulty(name,maximumDifficultyRating);
+            } else if (name == null && maximumDifficultyRating == null && minimumReviewRating != null) {
+                recipes = recipeService.getAllRecipesByMinimumReviewRating(minimumReviewRating);
+            }
+            return ResponseEntity.ok(recipes);
         } catch (NoSuchRecipeException e) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)

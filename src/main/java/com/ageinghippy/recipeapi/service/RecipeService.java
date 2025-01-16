@@ -54,6 +54,16 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    public List<Recipe> getRecipesByNameAndMaximumDifficulty(String name, int maximumDifficultyRating) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByDifficultyRatingLessThanEqualAndNameContaining(maximumDifficultyRating, name);
+
+        if (matchingRecipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes could be found with that name and given maximum difficulty rating.");
+        }
+
+        return matchingRecipes;
+    }
+
     public List<Recipe> getAllRecipes() throws NoSuchRecipeException {
         List<Recipe> recipes = recipeRepo.findAll();
 
