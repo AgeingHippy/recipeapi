@@ -30,6 +30,9 @@ public class Recipe {
     @Column(nullable = false)
     private Integer difficultyRating;
 
+    @Transient
+    private Integer reviewRating;
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
     private List<Ingredient> ingredients; // = new ArrayList<>();
@@ -45,9 +48,6 @@ public class Recipe {
     @Transient
     @JsonIgnore
     private URI locationURI;
-
-    @Transient
-    private Integer reviewRating;
 
     public void setDifficultyRating(int difficultyRating) {
         if (difficultyRating < 0 || difficultyRating > 10) {

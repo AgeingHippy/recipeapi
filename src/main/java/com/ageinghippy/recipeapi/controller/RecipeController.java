@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Recipes",description = "Manage recipes")
+@Tag(name = "Recipes", description = "Manage recipes")
 @RestController
 @RequestMapping("/recipes")
 public class RecipeController {
@@ -50,6 +50,16 @@ public class RecipeController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/review-rating/{minimumReviewRating}")
+    public ResponseEntity<?> getRecipesByMinimumReviewRating(@PathVariable int minimumReviewRating) {
+        try {
+            List<Recipe> recipes = recipeService.getAllRecipesByMinimumReviewRating(minimumReviewRating);
+            return ResponseEntity.ok(recipes);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

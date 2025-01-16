@@ -64,6 +64,13 @@ public class RecipeService {
         return recipes;
     }
 
+    public List<Recipe> getAllRecipesByMinimumReviewRating(int minimumReviewRating) {
+        if (minimumReviewRating < 0 || minimumReviewRating > 10) {
+            throw new IllegalStateException("Minimum rating must be within the range of 0-10");
+        }
+        return recipeRepo.findAllWithMinimumReviewRating(minimumReviewRating);
+    }
+
     @Transactional
     public Recipe deleteRecipeById(Long id) throws NoSuchRecipeException {
         try {
