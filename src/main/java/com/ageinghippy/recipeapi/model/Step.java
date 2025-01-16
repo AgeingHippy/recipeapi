@@ -16,10 +16,10 @@ public class Step {
 
     @Id
     @GeneratedValue
-    private long id;
+    private Long id; //todo add unique key on id,stepNumber ?
 
     @NotNull
-    private int stepNumber;
+    private Integer stepNumber;
 
     @NotNull
     private String description;

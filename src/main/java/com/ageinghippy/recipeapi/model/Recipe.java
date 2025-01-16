@@ -7,8 +7,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,15 +32,15 @@ public class Recipe {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
-    private Collection<Ingredient> ingredients = new ArrayList<>();
+    private List<Ingredient> ingredients; // = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
-    private Collection<Step> steps = new ArrayList<>();
+    private List<Step> steps; // = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
-    private Collection<Review> reviews;
+    private List<Review> reviews;
 
     @Transient
     @JsonIgnore
