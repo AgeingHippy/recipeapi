@@ -12,6 +12,8 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
 
     List<Recipe> findByNameContainingIgnoreCase(String name);
 
+    List<Recipe> findByUsername(String name);
+
     @Query(value = """
             SELECT	rc.*
             FROM	recipe rc
@@ -23,5 +25,5 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
             nativeQuery = true)
     List<Recipe> findAllWithMinimumReviewRating(int minimumReviewRating);
 
-    List<Recipe> findByDifficultyRatingLessThanEqualAndNameContaining(int maximumDifficultyRating, String name);
+    List<Recipe> findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual( String name,int maximumDifficultyRating);
 }

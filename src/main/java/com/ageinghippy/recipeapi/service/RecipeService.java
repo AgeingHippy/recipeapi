@@ -25,9 +25,9 @@ public class RecipeService {
     EntityManager entityManager;
 
     @Transactional
-    public Recipe createNewRecipe(Recipe recipe) throws IllegalStateException {
+    public Recipe createNewRecipe(Recipe recipe) throws IllegalArgumentException {
         if (recipe.getId() != null) {
-            throw new IllegalStateException("ID cannot be specified for a new recipe");
+            throw new IllegalArgumentException("ID cannot be specified for a new recipe");
         }
         return saveRecipe(recipe);
     }
@@ -54,8 +54,18 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    public List<Recipe> getRecipesByUsername(String username) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByUsername(username);
+
+        if (matchingRecipes.isEmpty()) {
+            throw new NoSuchRecipeException("No recipes could be found with that username.");
+        }
+
+        return matchingRecipes;
+    }
+
     public List<Recipe> getRecipesByNameAndMaximumDifficulty(String name, int maximumDifficultyRating) throws NoSuchRecipeException {
-        List<Recipe> matchingRecipes = recipeRepo.findByDifficultyRatingLessThanEqualAndNameContaining(maximumDifficultyRating, name);
+        List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual(name,maximumDifficultyRating);
 
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found with that name and given maximum difficulty rating.");
@@ -76,7 +86,7 @@ public class RecipeService {
 
     public List<Recipe> getAllRecipesByMinimumReviewRating(int minimumReviewRating) {
         if (minimumReviewRating < 0 || minimumReviewRating > 10) {
-            throw new IllegalStateException("Minimum rating must be within the range of 0-10");
+            throw new IllegalArgumentException("Minimum rating must be within the range of 0-10");
         }
         return recipeRepo.findAllWithMinimumReviewRating(minimumReviewRating);
     }

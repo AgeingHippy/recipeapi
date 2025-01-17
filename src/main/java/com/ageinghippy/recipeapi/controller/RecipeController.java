@@ -4,7 +4,9 @@ import com.ageinghippy.recipeapi.exception.NoSuchIngredientException;
 import com.ageinghippy.recipeapi.exception.NoSuchRecipeException;
 import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.service.RecipeService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +23,11 @@ public class RecipeController {
     RecipeService recipeService;
 
     @PostMapping
-    public ResponseEntity<?> createNewRecipe(@RequestBody Recipe recipe) {
+    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe) {
         try {
             Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (IllegalStateException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -42,23 +44,62 @@ public class RecipeController {
         }
     }
 
+    @Operation(summary = "Get all recipes matching a set of optional query parameters.",
+            description = """
+                    Legal combinations of these optional parameters are:-
+                    1) none - all recipes in the database
+                    2) name - all recipes with the recipe name containing the provided name
+                    3) name and maximumDifficultyRating - all recipes with the recipe name containing the provided name AND with a maximum difficulty rating
+                    4) username - all recipes with the provided username
+                    5) minimumReviewRating - all recipes with the minimum average review rating as provided
+                                
+                    Note: Provision of an illegal combination will result in a 400 Bad Request
+                    """)
     @GetMapping
     public ResponseEntity<?> getAllRecipes(@RequestParam(required = false) String name,
+                                           @RequestParam(required = false) String username,
                                            @RequestParam(required = false) Integer maximumDifficultyRating,
                                            @RequestParam(required = false) Integer minimumReviewRating) {
         List<Recipe> recipes = null;
         try {
-            if (name == null && maximumDifficultyRating == null && minimumReviewRating == null) {
+            if (name == null &&
+                    username == null &&
+                    maximumDifficultyRating == null &&
+                    minimumReviewRating == null) {
                 //get all - no filters applied
                 recipes = recipeService.getAllRecipes();
-            } else if (name != null && maximumDifficultyRating == null && minimumReviewRating == null) {
+            } else if (name != null &&
+                    maximumDifficultyRating == null &&
+                    minimumReviewRating == null) {
                 //recipes by name only
                 recipes = recipeService.getRecipesByName(name);
-            } else if (name != null && maximumDifficultyRating != null && minimumReviewRating == null) {
+            } else if (name != null &&
+                    username == null &&
+                    maximumDifficultyRating != null &&
+                    minimumReviewRating == null) {
                 //recipes by name and difficulty rating
-                recipes = recipeService.getRecipesByNameAndMaximumDifficulty(name,maximumDifficultyRating);
-            } else if (name == null && maximumDifficultyRating == null && minimumReviewRating != null) {
+                recipes = recipeService.getRecipesByNameAndMaximumDifficulty(name, maximumDifficultyRating);
+            } else if (name == null &&
+                    username == null &&
+                    maximumDifficultyRating == null &&
+                    minimumReviewRating != null) {
+                //by minimum review rating
                 recipes = recipeService.getAllRecipesByMinimumReviewRating(minimumReviewRating);
+            } else if (name == null &&
+                    username != null &&
+                    maximumDifficultyRating == null &&
+                    minimumReviewRating == null) {
+                //by username
+                recipes = recipeService.getRecipesByUsername(username);
+            } else {
+                return ResponseEntity.badRequest().body("""
+                        Invalid combination of query parameters provided.
+                        Legal combinations of these optional parameters are:-
+                        1) none - all recipes in the database
+                        2) name - all recipes with the recipe name containing the provided name
+                        3) name and maximumDifficultyRating - all recipes with the recipe name containing the provided name AND with a maximum difficulty rating
+                        4) username - all recipes with the provided username
+                        5) minimumReviewRating - all recipes with the minimum average review rating as provided""");
             }
             return ResponseEntity.ok(recipes);
         } catch (NoSuchRecipeException e) {
@@ -73,7 +114,7 @@ public class RecipeController {
         try {
             List<Recipe> recipes = recipeService.getAllRecipesByMinimumReviewRating(minimumReviewRating);
             return ResponseEntity.ok(recipes);
-        } catch (IllegalStateException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -108,7 +149,7 @@ public class RecipeController {
         try {
             Recipe returnedUpdatedRecipe = recipeService.patchRecipe(updatedRecipe);
             return ResponseEntity.ok(returnedUpdatedRecipe);
-        } catch (NoSuchRecipeException | IllegalStateException | NoSuchIngredientException e) {
+        } catch (NoSuchRecipeException | IllegalArgumentException | NoSuchIngredientException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

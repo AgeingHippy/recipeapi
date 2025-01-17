@@ -3,6 +3,7 @@ package com.ageinghippy.recipeapi.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -19,10 +20,10 @@ public class Ingredient {
     @GeneratedValue
     private Long id;
 
-    @NotNull
+    @NotEmpty
     private String name;
 
-    @NotNull
+    @NotEmpty
     private String amount;
 
     private String state;

@@ -5,6 +5,7 @@ import com.ageinghippy.recipeapi.exception.NoSuchReviewException;
 import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.model.Review;
 import com.ageinghippy.recipeapi.service.ReviewService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class ReviewController {
         try {
             Review retrievedReview = reviewService.getReviewById(id);
             return ResponseEntity.ok(retrievedReview);
-        } catch (IllegalStateException | NoSuchReviewException e) {
+        } catch (IllegalArgumentException | NoSuchReviewException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -50,12 +51,14 @@ public class ReviewController {
     }
 
     @PostMapping("/{recipeId}")
-    public ResponseEntity<?> postNewReview(@RequestBody Review review, @PathVariable("recipeId") Long recipeId) {
+    public ResponseEntity<?> postNewReview(@Valid @RequestBody Review review, @PathVariable("recipeId") Long recipeId) {
         try {
             Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
             return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (NoSuchRecipeException e) {
+        } catch (NoSuchRecipeException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
 
