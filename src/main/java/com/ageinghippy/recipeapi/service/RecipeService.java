@@ -176,7 +176,6 @@ public class RecipeService {
     }
 
     private Recipe saveRecipe(Recipe recipe) {
-        recipe.validate();
         recipeRepo.saveAndFlush(recipe);
 
         //force a refresh from the database to ensure all reviews are loaded and average rating calculated

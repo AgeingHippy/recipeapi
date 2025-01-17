@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.ArrayList;
 import java.util.List;
 
-@RestControllerAdvice
+@RestControllerAdvice //(basePackages = {"com.ageinghippy.recipeapi.controller"})
 public class ControllerAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

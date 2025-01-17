@@ -1,5 +1,6 @@
 package com.ageinghippy.recipeapi.model;
 
+import com.ageinghippy.recipeapi.validator.ListSize;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -49,11 +50,13 @@ public class Recipe {
     @Transient
     private Integer reviewRating;
 
+    @ListSize(minSize = 1)
     @Valid
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
     private List<Ingredient> ingredients = new ArrayList<>();
 
+    @ListSize(minSize = 1)
     @Valid
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
@@ -67,16 +70,6 @@ public class Recipe {
     @Transient
     @JsonIgnore
     private URI locationURI;
-
-    public void validate() throws IllegalArgumentException {
-        if (ingredients.size() == 0) {
-            throw new IllegalArgumentException(
-                    "You need at least one ingredient for your recipe!");
-        } else if (steps.size() == 0) {
-            throw new IllegalArgumentException(
-                    "You need at least one step for your recipe!");
-        }
-    }
 
     public void generateLocationURI() {
         try {
