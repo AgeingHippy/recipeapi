@@ -78,7 +78,7 @@ public class RecipeService {
         List<Recipe> recipes = recipeRepo.findAll();
 
         if (recipes.isEmpty()) {
-            throw new NoSuchRecipeException("There are no recipes yet :( feel free to add one.");
+            throw new NoSuchRecipeException("There are no recipes yet :( feel free to add one though");
         }
 
         return recipes;
