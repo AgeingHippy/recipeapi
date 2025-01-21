@@ -21,8 +21,7 @@ public class TestUtil {
         return mapper.writeValueAsString(object);
     }
 
-    public static <T> T convertJsonBytesToObject(
-            byte[] bytes, Class<T> clazz) throws IOException {
+    public static <T> T convertJsonBytesToObject(byte[] bytes, Class<T> clazz) throws IOException {
         // ObjectReader is used to translate JSON to a Java object
         ObjectReader reader = new ObjectMapper()
                 // indicate which class the reader maps to

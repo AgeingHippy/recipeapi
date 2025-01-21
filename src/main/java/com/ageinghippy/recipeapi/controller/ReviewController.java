@@ -21,65 +21,40 @@ public class ReviewController {
     ReviewService reviewService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getReviewById(@PathVariable("id") Long id) {
-        try {
-            Review retrievedReview = reviewService.getReviewById(id);
-            return ResponseEntity.ok(retrievedReview);
-        } catch (IllegalArgumentException | NoSuchReviewException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> getReviewById(@PathVariable("id") Long id) throws NoSuchReviewException {
+        Review retrievedReview = reviewService.getReviewById(id);
+        return ResponseEntity.ok(retrievedReview);
     }
 
     @GetMapping("/recipe/{recipeId}")
-    public ResponseEntity<?> getReviewByRecipeId(@PathVariable("recipeId") Long recipeId) {
-        try {
-            List<Review> reviews = reviewService.getReviewByRecipeId(recipeId);
-            return ResponseEntity.ok(reviews);
-        } catch (NoSuchRecipeException | NoSuchReviewException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> getReviewByRecipeId(@PathVariable("recipeId") Long recipeId) throws NoSuchReviewException, NoSuchRecipeException {
+        List<Review> reviews = reviewService.getReviewByRecipeId(recipeId);
+        return ResponseEntity.ok(reviews);
     }
 
     @GetMapping("/user/{username}")
-    public ResponseEntity<?> getReviewByUsername(@PathVariable("username") String username) {
-        try {
-            List<Review> reviews = reviewService.getReviewByUsername(username);
-            return ResponseEntity.ok(reviews);
-        } catch (NoSuchReviewException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> getReviewByUsername(@PathVariable("username") String username) throws NoSuchReviewException {
+        List<Review> reviews = reviewService.getReviewByUsername(username);
+        return ResponseEntity.ok(reviews);
     }
 
     @PostMapping("/{recipeId}")
-    public ResponseEntity<?> postNewReview(@Valid @RequestBody Review review, @PathVariable("recipeId") Long recipeId) {
-        try {
-            Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
-            return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
-        } catch (NoSuchRecipeException | IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+    public ResponseEntity<?> postNewReview(@Valid @RequestBody Review review, @PathVariable("recipeId") Long recipeId) throws NoSuchRecipeException {
+        Recipe insertedRecipe = reviewService.postNewReview(review, recipeId);
+        return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
+
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteReviewById(@PathVariable("id") Long id) {
-        try {
-            Review review = reviewService.deleteReviewById(id);
-            return ResponseEntity.ok(review);
-        } catch (NoSuchReviewException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> deleteReviewById(@PathVariable("id") Long id) throws NoSuchReviewException {
+        Review review = reviewService.deleteReviewById(id);
+        return ResponseEntity.ok(review);
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateReviewById(@RequestBody Review reviewToUpdate) {
-        try {
-            Review review = reviewService.updateReviewById(reviewToUpdate);
-            return ResponseEntity.ok(review);
-        } catch (NoSuchReviewException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<?> updateReviewById(@RequestBody Review reviewToUpdate) throws NoSuchReviewException {
+        Review review = reviewService.updateReviewById(reviewToUpdate);
+        return ResponseEntity.ok(review);
     }
 
 
