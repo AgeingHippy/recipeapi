@@ -42,7 +42,7 @@ public class RecipeController {
                     3) name and maximumDifficultyRating - all recipes with the recipe name containing the provided name AND with a maximum difficulty rating
                     4) username - all recipes with the provided username
                     5) minimumReviewRating - all recipes with the minimum average review rating as provided
-                                        
+                    
                     Note: Provision of an illegal combination will result in a 400 Bad Request
                     """)
     @GetMapping

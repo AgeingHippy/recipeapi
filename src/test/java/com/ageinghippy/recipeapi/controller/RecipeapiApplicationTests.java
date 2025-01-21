@@ -1,4 +1,4 @@
-package com.ageinghippy.recipeapi;
+package com.ageinghippy.recipeapi.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.ageinghippy.recipeapi.TestUtil;
 import com.ageinghippy.recipeapi.exception.ResponseErrorMessage;
 import com.ageinghippy.recipeapi.model.Ingredient;
 import com.ageinghippy.recipeapi.model.Recipe;
