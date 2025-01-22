@@ -1,6 +1,5 @@
 package com.ageinghippy.recipeapi.controller;
 
-import com.ageinghippy.recipeapi.RecipeapiApplication;
 import com.ageinghippy.recipeapi.TestUtil;
 import com.ageinghippy.recipeapi.exception.NoSuchRecipeException;
 import com.ageinghippy.recipeapi.exception.ResponseErrorMessage;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -32,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(RecipeController.class)
-@ContextConfiguration(classes = RecipeapiApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RecipeControllerUnitTests {
 
@@ -322,14 +319,12 @@ class RecipeControllerUnitTests {
     }
 
     @Test
-    public void testCreateNewRecipeFailureBehavior() throws Exception {
+    public void testCreateNewRecipeFailureBehaviorValidAnnotation() throws Exception {
 
         Recipe recipe = new Recipe();
-        recipe.setName("notemptyname");
 
+        //following mockBean method should not be executed if @Valid on controller works as expected
         when(recipeService.createNewRecipe(any(Recipe.class))).thenReturn(recipe);
-
-//                .thenThrow(new IllegalArgumentException("Error message here"));
 
         // force failure with empty User object
         mockMvc.perform(post("/recipes")
@@ -342,7 +337,8 @@ class RecipeControllerUnitTests {
                 // confirm status code 400 BAD REQUEST
                 .andExpect(status().isBadRequest())
                 // confirm the body contains an array of strings
-                .andExpect(jsonPath("$.errorMessages").isArray());
+                .andExpect(jsonPath("$.errorMessages").isArray())
+                .andExpect(jsonPath("$.errorMessages", hasSize(6)));
     }
 
     @Test
