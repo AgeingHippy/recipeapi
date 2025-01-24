@@ -52,4 +52,13 @@ public class ControllerAdvice {
         List<String> errorMessages = List.of(e.getMessage());
         return new ResponseErrorMessage(HttpStatus.BAD_REQUEST, errorMessages);
     }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseErrorMessage requestISE(Exception e) {
+        List<String> errorMessages = List.of(e.getMessage());
+        System.err.println(e);
+        return new ResponseErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, errorMessages);
+    }
+
 }

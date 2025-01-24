@@ -12,7 +12,7 @@ public interface RecipeRepo extends JpaRepository<Recipe, Long> {
 
     List<Recipe> findByNameContainingIgnoreCase(String name);
 
-    List<Recipe> findByUsername(String name);
+    List<Recipe> findByUser_username(String name);
 
     @Query(value = """
             SELECT	rc.*

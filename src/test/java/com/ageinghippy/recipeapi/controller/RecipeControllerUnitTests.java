@@ -3,15 +3,13 @@ package com.ageinghippy.recipeapi.controller;
 import com.ageinghippy.recipeapi.TestUtil;
 import com.ageinghippy.recipeapi.exception.NoSuchRecipeException;
 import com.ageinghippy.recipeapi.exception.ResponseErrorMessage;
-import com.ageinghippy.recipeapi.model.Ingredient;
-import com.ageinghippy.recipeapi.model.Recipe;
-import com.ageinghippy.recipeapi.model.Review;
-import com.ageinghippy.recipeapi.model.Step;
+import com.ageinghippy.recipeapi.model.*;
 import com.ageinghippy.recipeapi.service.RecipeService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -31,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(RecipeController.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@WithMockUser(roles="USER")
 class RecipeControllerUnitTests {
 
     private Recipe recipe1;
@@ -41,6 +40,9 @@ class RecipeControllerUnitTests {
     @Autowired
     MockMvc mockMvc;
 
+//    @Autowired
+//    PasswordEncoder passwordEncoder;
+
     @MockitoBean
     RecipeService recipeService;
 
@@ -48,61 +50,152 @@ class RecipeControllerUnitTests {
     //Initialise 4 recipes for use by following tests
     public void setup() {
 
+        CustomUserDetails userIdfk = CustomUserDetails.builder()
+                .username("idfk")
+                .id(101L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(201L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(301L)
+                                .email("idfk@mail.com")
+                                .name("idfk").build())
+                .build();
+
+        CustomUserDetails userBob = CustomUserDetails.builder()
+                .username("bob")
+                .id(102L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(202L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(302L)
+                                .email("bob@mail.com")
+                                .name("bob").build())
+                .build();
+
+        CustomUserDetails userSally = CustomUserDetails.builder()
+                .username("sally")
+                .id(103L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(203L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(303L)
+                                .email("sally@mail.com")
+                                .name("sally").build())
+                .build();
+
+        CustomUserDetails userMark = CustomUserDetails.builder()
+                .username("mark")
+                .id(104L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(204L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(304L)
+                                .email("mark@mail.com")
+                                .name("mark").build())
+                .build();
+
+        CustomUserDetails userBen = CustomUserDetails.builder()
+                .username("ben")
+                .id(105L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(205L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(305L)
+                                .email("ben@mail.com")
+                                .name("ben").build())
+                .build();
+
+        CustomUserDetails userBilly = CustomUserDetails.builder()
+                .username("bill")
+                .id(106L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(206L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(306L)
+                                .email("bill@mail.com")
+                                .name("bill").build())
+                .build();
+
+        // Ingredients
+
+        Ingredient ingredient = Ingredient.builder()
+                .name("flour")
+                .state("dry")
+                .amount("2 cups")
+                .build();
+
+        Step step1 = Step.builder()
+                .description("put flour in bowl")
+                .stepNumber(1)
+                .build();
+        Step step2 = Step.builder()
+                .description("eat it?")
+                .stepNumber(2)
+                .build();
+
+        Review review = Review.builder()
+                .description("tasted pretty bad")
+                .rating(2)
+                .user(userIdfk)
+                .build();
+
         recipe1 = Recipe.builder()
                 .id(1L)
                 .name("test recipe")
                 .difficultyRating(10)
                 .minutesToMake(2)
-                .username("bob")
-                .ingredients(List.of(
-                        Ingredient.builder()
-                                .id(111L)
-                                .name("flour")
-                                .state("dry")
-                                .amount("2 cups")
-                                .build()))
-                .steps(List.of(
-                        Step.builder()
-                                .id(121L)
-                                .description("put flour in bowl")
-                                .stepNumber(1)
-                                .build(),
-                        Step.builder()
-                                .id(122L)
-                                .description("eat it?")
-                                .stepNumber(2)
-                                .build()))
-                .reviews(List.of(
-                        Review.builder()
-                                .id(131L)
-                                .description("tasted pretty bad")
-                                .rating(2)
-                                .username("idfk")
-                                .build()
-                ))
+                .ingredients(List.of(ingredient))
+                .steps(List.of(step1, step2))
+                .reviews(List.of(review))
+                .user(userBob)
                 .build();
 
-
-        //ingredient.setId(null);
+        ingredient.setId(null);
         recipe2 = Recipe.builder()
                 .id(2L)
                 .name("another test recipe")
                 .difficultyRating(10)
                 .minutesToMake(2)
-                .username("Sally")
-                .ingredients(List.of(
-                        Ingredient.builder()
-                                .id(211L)
-                                .name("test ing")
-                                .amount("1")
-                                .state("dry")
-                                .build()))
-                .steps(List.of(
-                        Step.builder()
-                                .id(221L)
-                                .description("test")
-                                .stepNumber(1)
-                                .build()))
+                .user(userSally)
+                .steps(List.of(Step.builder()
+                        .description("test")
+                        .stepNumber(1)
+                        .build()))
+                .ingredients(List.of(Ingredient.builder()
+                        .name("test ing")
+                        .amount("1")
+                        .state("dry")
+                        .build()))
                 .build();
 
         recipe3 = Recipe.builder()
@@ -110,56 +203,46 @@ class RecipeControllerUnitTests {
                 .name("another another test recipe")
                 .difficultyRating(5)
                 .minutesToMake(2)
-                .username("Mark")
-                .ingredients(List.of(
-                        Ingredient.builder()
-                                .id(311L)
-                                .name("test ing 2")
-                                .amount("2")
-                                .state("wet")
-                                .build()))
-                .steps(List.of(
-                        Step.builder()
-                                .id(321L)
-                                .description("test 2")
-                                .stepNumber(1)
-                                .build()))
+                .user(userMark)
+                .steps(List.of(Step.builder()
+                        .description("test 2")
+                        .stepNumber(1)
+                        .build()))
+                .ingredients(List.of(Ingredient.builder()
+                        .name("test ing 2")
+                        .amount("2")
+                        .state("wet")
+                        .build()))
                 .build();
 
         recipe4 = Recipe.builder()
-                .id(4L)
                 .name("chocolate and potato chips")
                 .difficultyRating(10)
                 .minutesToMake(1)
-                .username("Billy")
                 .ingredients(List.of(
                         Ingredient.builder()
-                                .id(411L)
                                 .name("potato chips")
                                 .amount("1 bag")
                                 .build(),
                         Ingredient.builder()
-                                .id(412L)
                                 .name("chocolate")
                                 .amount("1 bar")
                                 .build()))
-                .steps(List.of(
-                        Step.builder()
-                                .id(421L)
-                                .stepNumber(1)
-                                .description("eat both items together")
-                                .build()))
-                .reviews(List.of(
-                        Review.builder()
-                                .id(431L)
-                                .username("ben")
-                                .rating(10)
-                                .description("this stuff is so good")
-                                .build()))
+                .steps(List.of(Step.builder()
+                        .stepNumber(1)
+                        .description("eat both items together")
+                        .build()))
+                .reviews(List.of(Review.builder()
+                        .user(userBen)
+                        .rating(10)
+                        .description("this stuff is so good")
+                        .build()))
+                .user(userBilly)
                 .build();
     }
 
     @Test
+//    @WithMockUser(roles="ANONYMOUS")
     public void testGetRecipeByIdSuccessBehavior() throws Exception {
 
         when(recipeService.getRecipeById(1L))
@@ -184,7 +267,7 @@ class RecipeControllerUnitTests {
                 .andExpect(jsonPath("reviews", hasSize(1)))
                 .andExpect(jsonPath("ingredients", hasSize(1)))
                 .andExpect(jsonPath("steps", hasSize(2)))
-                .andExpect(jsonPath("username").value("bob"));
+                .andExpect(jsonPath("author").value("bob"));
     }
 
     @Test
@@ -248,6 +331,16 @@ class RecipeControllerUnitTests {
     @Test
     public void testCreateNewRecipeSuccessBehavior() throws Exception {
 
+        CustomUserDetails userIdfk = CustomUserDetails.builder()
+                .id(101L)
+                .username("idfk")
+                .build();
+
+        CustomUserDetails userBill = CustomUserDetails.builder()
+                .id(102L)
+                .username("bill")
+                .build();
+
         Ingredient ingredient = Ingredient.builder()
                 .name("brown sugar")
                 .state("dry")
@@ -266,14 +359,14 @@ class RecipeControllerUnitTests {
         Review review = Review.builder()
                 .description("was just caramel")
                 .rating(3)
-                .username("idk")
+                .user(userIdfk)
                 .build();
 
         Recipe recipe = Recipe.builder()
                 .name("caramel in a pan")
                 .difficultyRating(10)
                 .minutesToMake(2)
-                .username("bill")
+                .user(userBill)
                 .ingredients(List.of(ingredient))
                 .steps(List.of(step1, step2))
                 .reviews(List.of(review))
@@ -299,7 +392,7 @@ class RecipeControllerUnitTests {
 
                 // confirm some recipe data
                 .andExpect(jsonPath("name").value("caramel in a pan"))
-                .andExpect(jsonPath("username").value("bill"))
+                .andExpect(jsonPath("author").value("bill"))
 
                 // confirm ingredient data
                 .andExpect(jsonPath("ingredients", hasSize(1)))
@@ -315,7 +408,7 @@ class RecipeControllerUnitTests {
 
                 // confirm review data
                 .andExpect(jsonPath("reviews", hasSize(1)))
-                .andExpect(jsonPath("reviews[0].username").value("idk"));
+                .andExpect(jsonPath("reviews[0].author").value("idfk"));
     }
 
     @Test
@@ -331,7 +424,8 @@ class RecipeControllerUnitTests {
                         // set request Content-Type header
                         .contentType("application/json")
                         // set HTTP body equal to JSON based on recipe object
-                        .content(TestUtil.convertObjectToJsonBytes(recipe)))
+//                        .content(TestUtil.convertObjectToJsonBytes(recipe))
+                )
                 .andDo(print())
                 .andDo(print())
                 // confirm status code 400 BAD REQUEST

@@ -11,7 +11,6 @@ import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +55,7 @@ public class RecipeService {
     }
 
     public List<Recipe> getRecipesByUsername(String username) throws NoSuchRecipeException {
-        List<Recipe> matchingRecipes = recipeRepo.findByUsername(username);
+        List<Recipe> matchingRecipes = recipeRepo.findByUser_username(username);
 
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found with that username.");

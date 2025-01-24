@@ -1,9 +1,8 @@
 package com.ageinghippy.recipeapi.model;
 
 import com.ageinghippy.recipeapi.validator.RequiredAndNotGoofy;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -23,8 +22,10 @@ public class Review {
     @GeneratedValue
     private Long id;
 
-    @NotBlank
-    private String username;
+    @ManyToOne(optional = false)
+    @JoinColumn
+    @JsonIgnore
+    private CustomUserDetails user;
 
     @NotNull
     @Min(value = 1, message = "must be between 1 and 10")
@@ -33,6 +34,10 @@ public class Review {
 
     @RequiredAndNotGoofy
     private String description;
+
+    public String getAuthor() {
+        return this.user.getUsername();
+    }
 
 //    public void setRating(int rating) {
 //        if (rating <= 0 || rating > 10) {

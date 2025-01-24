@@ -5,7 +5,6 @@ import com.ageinghippy.recipeapi.exception.NoSuchReviewException;
 import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.model.Review;
 import com.ageinghippy.recipeapi.repository.ReviewRepo;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +41,7 @@ public class ReviewService {
     }
 
     public List<Review> getReviewByUsername(String username) throws NoSuchReviewException {
-        List<Review> reviews = reviewRepo.findByUsername(username);
+        List<Review> reviews = reviewRepo.findByUser_username(username);
 
         if (reviews.isEmpty()) {
             throw new NoSuchReviewException("No reviews could be found for username " + username);
@@ -52,7 +51,7 @@ public class ReviewService {
 
     public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
-        if (recipe.getUsername().equalsIgnoreCase(review.getUsername())) {
+        if (recipe.getAuthor().equals(review.getAuthor())) {
             throw new IllegalArgumentException("Oy! You cannot post reviews for your own recipes!!");
         }
         recipe.getReviews().add(review);

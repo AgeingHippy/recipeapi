@@ -43,9 +43,10 @@ public class Recipe {
     @Column(nullable = false)
     private Integer difficultyRating;
 
-    @NotBlank
-    @Column(nullable = false)
-    private String username;
+    @ManyToOne(optional = false)
+    @JoinColumn
+    @JsonIgnore
+    private CustomUserDetails user;
 
     @Transient
     private Integer reviewRating;
@@ -70,6 +71,10 @@ public class Recipe {
     @Transient
     @JsonIgnore
     private URI locationURI;
+
+    public String getAuthor() {
+        return this.user.getUsername();
+    }
 
     public void generateLocationURI() {
         try {

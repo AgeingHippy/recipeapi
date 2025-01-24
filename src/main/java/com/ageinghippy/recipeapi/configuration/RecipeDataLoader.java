@@ -1,13 +1,12 @@
 package com.ageinghippy.recipeapi.configuration;
 
-import com.ageinghippy.recipeapi.model.Ingredient;
-import com.ageinghippy.recipeapi.model.Recipe;
-import com.ageinghippy.recipeapi.model.Review;
-import com.ageinghippy.recipeapi.model.Step;
+import com.ageinghippy.recipeapi.model.*;
 import com.ageinghippy.recipeapi.repository.RecipeRepo;
+import com.ageinghippy.recipeapi.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,10 +18,64 @@ public class RecipeDataLoader implements CommandLineRunner {
     @Autowired
     RecipeRepo recipeRepo;
 
+    @Autowired
+    UserRepo userRepo;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
         System.out.println("STARTING WITH TEST DATABASE SETUP");
         if (recipeRepo.findAll().isEmpty()) {
+
+            //users
+
+            CustomUserDetails userIdfk = CustomUserDetails.builder()
+                    .username("idfk")
+                    .password(passwordEncoder.encode("pass"))
+                    .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
+                    .userMeta(UserMeta.builder().name("idfk").email("idfk@email.com").build())
+                    .build();
+
+            CustomUserDetails userBob = CustomUserDetails.builder()
+                    .username("bob")
+                    .password(passwordEncoder.encode("pass"))
+                    .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
+                    .userMeta(UserMeta.builder().name("bob").email("bob@email.com").build())
+                    .build();
+
+            CustomUserDetails userSally = CustomUserDetails.builder()
+                    .username("sally")
+                    .password(passwordEncoder.encode("pass"))
+                    .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
+                    .userMeta(UserMeta.builder().name("sally").email("sally@email.com").build())
+                    .build();
+
+            CustomUserDetails userMark = CustomUserDetails.builder()
+                    .username("mark")
+                    .password(passwordEncoder.encode("pass"))
+                    .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
+                    .userMeta(UserMeta.builder().name("mark").email("mark@email.com").build())
+                    .build();
+
+            CustomUserDetails userBen = CustomUserDetails.builder()
+                    .username("ben")
+                    .password(passwordEncoder.encode("pass"))
+                    .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
+                    .userMeta(UserMeta.builder().name("ben").email("ben@email.com").build())
+                    .build();
+
+            CustomUserDetails userBill = CustomUserDetails.builder()
+                    .username("bill")
+                    .password(passwordEncoder.encode("pass"))
+                    .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
+                    .userMeta(UserMeta.builder().name("bill").email("bill@email.com").build())
+                    .build();
+
+            userRepo.saveAll(List.of(userBen,userBill,userBob,userIdfk,userSally,userMark));
+
+            // Ingredients
 
             Ingredient ingredient = Ingredient.builder()
                     .name("flour")
@@ -42,7 +95,7 @@ public class RecipeDataLoader implements CommandLineRunner {
             Review review = Review.builder()
                     .description("tasted pretty bad")
                     .rating(2)
-                    .username("idfk")
+                    .user(userIdfk)
                     .build();
 
             Recipe recipe1 = Recipe.builder()
@@ -52,7 +105,7 @@ public class RecipeDataLoader implements CommandLineRunner {
                     .ingredients(List.of(ingredient))
                     .steps(List.of(step1, step2))
                     .reviews(List.of(review))
-                    .username("bob")
+                    .user(userBob)
                     .build();
 
             recipeRepo.save(recipe1);
@@ -71,7 +124,7 @@ public class RecipeDataLoader implements CommandLineRunner {
                     .name("another test recipe")
                     .difficultyRating(10)
                     .minutesToMake(2)
-                    .username("Sally")
+                    .user(userSally)
                     .build();
             recipeRepo.save(recipe2);
 
@@ -88,7 +141,7 @@ public class RecipeDataLoader implements CommandLineRunner {
                     .name("another another test recipe")
                     .difficultyRating(5)
                     .minutesToMake(2)
-                    .username("Mark")
+                    .user(userMark)
                     .build();
 
             recipeRepo.save(recipe3);
@@ -111,11 +164,11 @@ public class RecipeDataLoader implements CommandLineRunner {
                             .description("eat both items together")
                             .build()))
                     .reviews(List.of(Review.builder()
-                            .username("ben")
+                            .user(userBen)
                             .rating(10)
                             .description("this stuff is so good")
                             .build()))
-                    .username("Billy")
+                    .user(userBill)
                     .build();
 
             recipeRepo.save(recipe4);
