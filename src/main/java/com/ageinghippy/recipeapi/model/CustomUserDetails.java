@@ -19,6 +19,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Id
     @GeneratedValue
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @Column(nullable = false, unique = true)

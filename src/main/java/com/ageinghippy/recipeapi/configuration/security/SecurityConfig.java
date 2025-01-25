@@ -23,11 +23,12 @@ public class SecurityConfig {
                 // permit all requests to access CSS and JavaScript
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css", "/js").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // allow all requests to read recipes and reviews
-                        .requestMatchers(HttpMethod.GET, "/recipes/**", "/reviews").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/recipe/**", "/review/**", "/user").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user").permitAll()
                         // allow creation of new recipes and reviews
-                        .requestMatchers(HttpMethod.POST, "/recipes", "/reviews").permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/recipes", "/reviews", "/user").permitAll()
                         // all other requests should be authenticated
                         .anyRequest().authenticated())
                 // users should log in with HTTP Basic Authentication.

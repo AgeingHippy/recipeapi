@@ -73,16 +73,22 @@ public class ReviewService {
     public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException {
         try {
             Review review = getReviewById(reviewToUpdate.getId());
+            if (reviewToUpdate.getDescription() != null && !reviewToUpdate.getDescription().isEmpty()) {
+                review.setDescription(reviewToUpdate.getDescription());
+            }
+            if (reviewToUpdate.getRating() != null ) {
+                review.setRating(reviewToUpdate.getRating());
+            }
+
+            reviewToUpdate = reviewRepo.save(review);
+
+            return reviewToUpdate;
         } catch (NoSuchReviewException e) {
             throw new NoSuchReviewException(
                     "The review you are trying to update. " +
                             "Maybe you meant to create one? If not," +
                             "please double-check the ID you passed in.");
         }
-        //todo this should be doing partial updates (PATCH) rather than a full update (POST)?
-        reviewRepo.save(reviewToUpdate);
-        //todo - according to the docs we should use the returned entity as the provided entity may have been changed completely!!
-        return reviewToUpdate;
     }
 
 }

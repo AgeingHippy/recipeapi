@@ -2,6 +2,7 @@ package com.ageinghippy.recipeapi.model;
 
 import com.ageinghippy.recipeapi.validator.ListSize;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -48,7 +49,13 @@ public class Recipe {
     @JsonIgnore
     private CustomUserDetails user;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public String getAuthor() {
+        return this.user.getUsername();
+    }
+
     @Transient
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Integer reviewRating;
 
     @ListSize(minSize = 1)
@@ -66,15 +73,12 @@ public class Recipe {
     @Valid
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "recipe_id", nullable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Review> reviews;
 
     @Transient
     @JsonIgnore
     private URI locationURI;
-
-    public String getAuthor() {
-        return this.user.getUsername();
-    }
 
     public void generateLocationURI() {
         try {

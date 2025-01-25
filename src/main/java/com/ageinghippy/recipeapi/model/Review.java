@@ -2,6 +2,7 @@ package com.ageinghippy.recipeapi.model;
 
 import com.ageinghippy.recipeapi.validator.RequiredAndNotGoofy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -35,6 +36,7 @@ public class Review {
     @RequiredAndNotGoofy
     private String description;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getAuthor() {
         return this.user.getUsername();
     }

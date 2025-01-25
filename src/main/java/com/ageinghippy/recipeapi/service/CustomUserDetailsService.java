@@ -70,8 +70,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         userDetails.setAccountNonLocked(true);
         userDetails.setCredentialsNonExpired(true);
         userDetails.setEnabled(true);
-        userDetails.setAuthorities(Collections.singletonList(new Role(Role.Roles.ROLE_USER)));
-
+        if (userDetails.getAuthorities() == null || userDetails.getAuthorities().isEmpty()) {
+            userDetails.setAuthorities(Collections.singletonList(new Role(Role.Roles.ROLE_USER)));
+        }
         checkPassword(userDetails.getPassword());
         userDetails.setPassword(encoder.encode(userDetails.getPassword()));
         try {

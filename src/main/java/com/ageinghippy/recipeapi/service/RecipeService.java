@@ -54,11 +54,11 @@ public class RecipeService {
         return matchingRecipes;
     }
 
-    public List<Recipe> getRecipesByUsername(String username) throws NoSuchRecipeException {
-        List<Recipe> matchingRecipes = recipeRepo.findByUser_username(username);
+    public List<Recipe> getRecipesByUsername(String author) throws NoSuchRecipeException {
+        List<Recipe> matchingRecipes = recipeRepo.findByUser_username(author);
 
         if (matchingRecipes.isEmpty()) {
-            throw new NoSuchRecipeException("No recipes could be found with that username.");
+            throw new NoSuchRecipeException("No recipes could be found by that author.");
         }
 
         return matchingRecipes;
@@ -154,7 +154,7 @@ public class RecipeService {
                 }
         );
 
-        //todo patch reviews
+        //cannot patch reviews - only recipe stuff
 
         //return
         return updateRecipe(patchRecipe, false);

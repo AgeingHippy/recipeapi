@@ -2,6 +2,7 @@ package com.ageinghippy.recipeapi.controller;
 
 import com.ageinghippy.recipeapi.exception.NoSuchIngredientException;
 import com.ageinghippy.recipeapi.exception.NoSuchRecipeException;
+import com.ageinghippy.recipeapi.model.CustomUserDetails;
 import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.service.RecipeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,20 +10,23 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Recipes", description = "Manage recipes")
+@Tag(name = "Recipe", description = "Manage recipes")
 @RestController
-@RequestMapping("/recipes")
+@RequestMapping("/recipe")
 public class RecipeController {
 
     @Autowired
     RecipeService recipeService;
 
     @PostMapping
-    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe) {
+    public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe, Authentication authentication) {
+        recipe.setUser((CustomUserDetails) authentication.getPrincipal());
         Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
         return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
     }
@@ -46,39 +50,40 @@ public class RecipeController {
                     """)
     @GetMapping
     public ResponseEntity<?> getAllRecipes(@RequestParam(required = false) String name,
-                                           @RequestParam(required = false) String username,
+                                           @RequestParam(required = false) String author,
                                            @RequestParam(required = false) Integer maximumDifficultyRating,
                                            @RequestParam(required = false) Integer minimumReviewRating) throws NoSuchRecipeException {
         List<Recipe> recipes = null;
         if (name == null &&
-                username == null &&
+                author == null &&
                 maximumDifficultyRating == null &&
                 minimumReviewRating == null) {
             //get all - no filters applied
             recipes = recipeService.getAllRecipes();
         } else if (name != null &&
+                author == null &&
                 maximumDifficultyRating == null &&
                 minimumReviewRating == null) {
             //recipes by name only
             recipes = recipeService.getRecipesByName(name);
         } else if (name != null &&
-                username == null &&
+                author == null &&
                 maximumDifficultyRating != null &&
                 minimumReviewRating == null) {
             //recipes by name and difficulty rating
             recipes = recipeService.getRecipesByNameAndMaximumDifficulty(name, maximumDifficultyRating);
         } else if (name == null &&
-                username == null &&
+                author == null &&
                 maximumDifficultyRating == null &&
                 minimumReviewRating != null) {
             //by minimum review rating
             recipes = recipeService.getAllRecipesByMinimumReviewRating(minimumReviewRating);
         } else if (name == null &&
-                username != null &&
+                author != null &&
                 maximumDifficultyRating == null &&
                 minimumReviewRating == null) {
             //by username
-            recipes = recipeService.getRecipesByUsername(username);
+            recipes = recipeService.getRecipesByUsername(author);
         } else {
             //handled by ControllerAdvice
             throw new IllegalArgumentException("""
@@ -106,6 +111,7 @@ public class RecipeController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasPermission(#id, 'Recipe', 'delete')")
     public ResponseEntity<?> deleteRecipeById(@PathVariable("id") Long id) throws NoSuchRecipeException {
         Recipe deletedRecipe = recipeService.deleteRecipeById(id);
         return ResponseEntity
@@ -115,7 +121,9 @@ public class RecipeController {
     }
 
     @PatchMapping
-    public ResponseEntity<?> updateRecipe(@RequestBody Recipe updatedRecipe) throws NoSuchIngredientException, NoSuchRecipeException {
+    @PreAuthorize("hasPermission(#updatedRecipe.id, 'Recipe', 'edit')")
+    public ResponseEntity<?> updateRecipe(@RequestBody Recipe updatedRecipe)
+            throws NoSuchIngredientException, NoSuchRecipeException {
         Recipe returnedUpdatedRecipe = recipeService.patchRecipe(updatedRecipe);
         return ResponseEntity.ok(returnedUpdatedRecipe);
     }
