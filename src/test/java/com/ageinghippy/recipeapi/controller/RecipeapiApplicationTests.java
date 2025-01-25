@@ -24,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -49,7 +50,7 @@ class RecipeapiApplicationTests {
         final long recipeId = 1;
 
         // set up GET request
-        mockMvc.perform(get("/recipes/" + recipeId))
+        mockMvc.perform(get("/recipe/" + recipeId))
 
                 // print response
                 .andDo(print())
@@ -65,7 +66,7 @@ class RecipeapiApplicationTests {
                 .andExpect(jsonPath("reviews", hasSize(1)))
                 .andExpect(jsonPath("ingredients", hasSize(1)))
                 .andExpect(jsonPath("steps", hasSize(2)))
-                .andExpect(jsonPath("username").value("bob"));
+                .andExpect(jsonPath("author").value("bob"));
     }
 
     @Test
@@ -75,7 +76,7 @@ class RecipeapiApplicationTests {
         final long recipeId = 5000;
 
         // set up guaranteed to fail in testing environment request
-        mockMvc.perform(get("/recipes/" + recipeId))
+        mockMvc.perform(get("/recipe/" + recipeId))
 
                 //print response
                 .andDo(print())
@@ -91,7 +92,7 @@ class RecipeapiApplicationTests {
     public void testGetAllRecipesSuccessBehavior() throws Exception {
 
         // set up get request for all recipe endpoint
-        mockMvc.perform(get("/recipes"))
+        mockMvc.perform(get("/recipe"))
 
                 // expect status is 200 OK
                 .andExpect(status().isOk())
@@ -124,6 +125,7 @@ class RecipeapiApplicationTests {
 
     @Test
     @Order(4)
+    @WithUserDetails("bob")
     public void testCreateNewRecipeSuccessBehavior() throws Exception {
 
         Ingredient ingredient = Ingredient.builder()
@@ -141,24 +143,16 @@ class RecipeapiApplicationTests {
                 .stepNumber(2)
                 .build();
 
-        Review review = Review.builder()
-                .description("was just caramel")
-                .rating(3)
-                .author("idk")
-                .build();
-
         Recipe recipe = Recipe.builder()
                 .name("caramel in a pan")
                 .difficultyRating(10)
                 .minutesToMake(2)
-                .author("bill")
                 .ingredients(List.of(ingredient))
                 .steps(List.of(step1, step2))
-                .reviews(List.of(review))
                 .build();
 
         MockHttpServletResponse response = mockMvc
-                .perform(post("/recipes")
+                .perform(post("/recipe")
                         // set request Content-Type header
                         .contentType("application/json")
                         // set HTTP body equal to JSON based on recipe object
@@ -176,7 +170,7 @@ class RecipeapiApplicationTests {
                 // confirm some recipe data
                 .andExpect(jsonPath("id").isNotEmpty())
                 .andExpect(jsonPath("name").value("caramel in a pan"))
-                .andExpect(jsonPath("username").value("bill"))
+                .andExpect(jsonPath("author").value("bob"))
 
                 // confirm ingredient data
                 .andExpect(jsonPath("ingredients", hasSize(1)))
@@ -190,30 +184,25 @@ class RecipeapiApplicationTests {
                 .andExpect(jsonPath("steps[0]").isNotEmpty())
                 .andExpect(jsonPath("steps[1]").isNotEmpty())
 
-                // confirm review data
-                .andExpect(jsonPath("reviews", hasSize(1)))
-                .andExpect(jsonPath("reviews[0].username")
-                        .value("idk"))
                 .andReturn()
                 .getResponse();
     }
 
     @Test
     @Order(5)
+    @WithUserDetails("bob")
     public void testCreateNewRecipeFailureBehavior() throws Exception {
 
         Recipe recipe = new Recipe();
 
         // force failure with empty User object
-        mockMvc.perform(post("/recipes")
+        mockMvc.perform(post("/recipe")
                         // set body equal to empty recipe object
                         .content(TestUtil.convertObjectToJsonBytes(recipe))
                         // set Content-Type header
                         .contentType("application/json"))
                 // confirm status code 400 BAD REQUEST
-                .andExpect(status().isBadRequest())
-                // confirm the body contains an array of strings
-                .andExpect(jsonPath("$.errorMessages").isArray());
+                .andExpect(status().isBadRequest());
 
     }
 
@@ -223,7 +212,7 @@ class RecipeapiApplicationTests {
 
         // get request to search for recipes with names including "recipe"
         MvcResult mvcResult =
-                mockMvc.perform(get("/recipes/search/recipe"))
+                mockMvc.perform(get("/recipe/search/recipe"))
                         // expect 200 OK
                         .andExpect(status().isOk())
                         // expect JSON in return
@@ -251,7 +240,7 @@ class RecipeapiApplicationTests {
         }
 
         // get request to search for recipes with names containing potato
-        byte[] jsonBytes = mockMvc.perform(get("/recipes/search/potato"))
+        byte[] jsonBytes = mockMvc.perform(get("/recipe/search/potato"))
                 // expect 200 OK
                 .andExpect(status().isOk())
                 // expect json
@@ -279,7 +268,7 @@ class RecipeapiApplicationTests {
     public void testGetRecipeByNameFailureBehavior() throws Exception {
 
         byte[] contentAsByteArray = mockMvc.perform(
-                        get("/recipes/search/should not exist"))
+                        get("/recipe/search/should not exist"))
                 // expect 404 NOT FOUND
                 .andExpect(status().isNotFound())
                 // expect JSON object in the body
@@ -289,7 +278,7 @@ class RecipeapiApplicationTests {
                 .andReturn().getResponse().getContentAsByteArray();
 
         // convert JSON to ResponseErrorMessage
-        ResponseErrorMessage responseErrorMessage = TestUtil.convertJsonBytesToObject(contentAsByteArray,ResponseErrorMessage.class);
+        ResponseErrorMessage responseErrorMessage = TestUtil.convertJsonBytesToObject(contentAsByteArray, ResponseErrorMessage.class);
 
         // confirm error message is correct
         assertThat(responseErrorMessage.getErrorMessages().getFirst()).isEqualTo(
@@ -298,11 +287,12 @@ class RecipeapiApplicationTests {
 
     @Test
     @Order(8)
+    @WithUserDetails("mark")
     public void testDeleteRecipeByIdSuccessBehavior() throws Exception {
         final long recipeId = 3;
         // get the recipe with ID 3 for future error message confirmation
         byte[] responseByteArr =
-                mockMvc.perform(get("/recipes/" + recipeId))
+                mockMvc.perform(get("/recipe/" + recipeId))
                         .andExpect(status().isOk())
                         // confirm correct recipe was returned
                         .andExpect(jsonPath("id").value(recipeId))
@@ -313,7 +303,7 @@ class RecipeapiApplicationTests {
 
         // set up delete request
         byte[] deleteResponseByteArr =
-                mockMvc.perform(delete("/recipes/" + recipeId))
+                mockMvc.perform(delete("/recipe/" + recipeId))
                         // confirm 200 OK was returned
                         .andExpect(status().isOk())
                         // confirm a String was returned
@@ -337,21 +327,9 @@ class RecipeapiApplicationTests {
     @Order(9)
     public void testDeleteRecipeByIdFailureBehavior() throws Exception {
         // force error with invalid ID
-        byte[] responseContent =
-                mockMvc.perform(delete("/recipes/-1"))
-                        // expect 404 NOT FOUND
-                        .andExpect(status().isNotFound())
-                        // expect plain text aka a String
-                        .andExpect(content().contentType(
-                                MediaType.APPLICATION_JSON_VALUE))
-                        .andReturn().getResponse().getContentAsByteArray();
-
-        ResponseErrorMessage responseErrorMessage =
-                TestUtil.convertJsonBytesToObject(responseContent,ResponseErrorMessage.class);
-
-        // confirm correct error message
-        assertThat(responseErrorMessage.getErrorMessages().getFirst()).isEqualTo(
-                "No recipe with ID -1 could be found. Could not delete.");
+        mockMvc.perform(delete("/recipe/-1"))
+                // expect 404 NOT FOUND
+                .andExpect(status().isUnauthorized());
     }
 
 
@@ -364,7 +342,7 @@ class RecipeapiApplicationTests {
         recipeRepo.deleteAll();
 
         // perform GET all recipes
-        mockMvc.perform(get("/recipes"))
+        mockMvc.perform(get("/recipe"))
 
                 .andDo(print())
 

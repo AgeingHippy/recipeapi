@@ -33,42 +33,42 @@ public class RecipeDataLoader implements CommandLineRunner {
 
             CustomUserDetails userIdfk = CustomUserDetails.builder()
                     .username("idfk")
-                    .password(passwordEncoder.encode("pass"))
+                    .password(passwordEncoder.encode("password"))
                     .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
                     .userMeta(UserMeta.builder().name("idfk").email("idfk@email.com").build())
                     .build();
 
             CustomUserDetails userBob = CustomUserDetails.builder()
                     .username("bob")
-                    .password(passwordEncoder.encode("pass"))
+                    .password(passwordEncoder.encode("password"))
                     .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
                     .userMeta(UserMeta.builder().name("bob").email("bob@email.com").build())
                     .build();
 
             CustomUserDetails userSally = CustomUserDetails.builder()
                     .username("sally")
-                    .password(passwordEncoder.encode("pass"))
+                    .password(passwordEncoder.encode("password"))
                     .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
                     .userMeta(UserMeta.builder().name("sally").email("sally@email.com").build())
                     .build();
 
             CustomUserDetails userMark = CustomUserDetails.builder()
                     .username("mark")
-                    .password(passwordEncoder.encode("pass"))
+                    .password(passwordEncoder.encode("password"))
                     .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
                     .userMeta(UserMeta.builder().name("mark").email("mark@email.com").build())
                     .build();
 
             CustomUserDetails userBen = CustomUserDetails.builder()
                     .username("ben")
-                    .password(passwordEncoder.encode("pass"))
+                    .password(passwordEncoder.encode("password"))
                     .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
                     .userMeta(UserMeta.builder().name("ben").email("ben@email.com").build())
                     .build();
 
             CustomUserDetails userBill = CustomUserDetails.builder()
                     .username("bill")
-                    .password(passwordEncoder.encode("pass"))
+                    .password(passwordEncoder.encode("password"))
                     .authorities(List.of(Role.builder().role(Role.Roles.ROLE_USER).build()))
                     .userMeta(UserMeta.builder().name("bill").email("bill@email.com").build())
                     .build();

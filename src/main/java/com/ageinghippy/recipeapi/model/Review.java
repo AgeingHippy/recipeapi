@@ -38,7 +38,11 @@ public class Review {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getAuthor() {
-        return this.user.getUsername();
+        String userName = null;
+        if (this.user != null) {
+            userName = this.user.getUsername();
+        }
+        return userName;
     }
 
 //    public void setRating(int rating) {
