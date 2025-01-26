@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public class RecipeController {
 
     @PostMapping
     public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe, Authentication authentication) {
-        recipe.setUser((CustomUserDetails) authentication.getPrincipal());
+        recipe.setUser( recipeService.castToCustomUserDetails( (UserDetails) authentication.getPrincipal()));
         Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
         return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
     }

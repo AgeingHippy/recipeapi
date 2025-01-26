@@ -2,6 +2,7 @@ package com.ageinghippy.recipeapi.service;
 
 import com.ageinghippy.recipeapi.exception.NoSuchRecipeException;
 import com.ageinghippy.recipeapi.exception.NoSuchIngredientException;
+import com.ageinghippy.recipeapi.model.CustomUserDetails;
 import com.ageinghippy.recipeapi.model.Ingredient;
 import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.model.Step;
@@ -9,6 +10,7 @@ import com.ageinghippy.recipeapi.repository.RecipeRepo;
 import com.ageinghippy.recipeapi.utils.Utils;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,11 @@ public class RecipeService {
 
     @Autowired
     EntityManager entityManager;
+
+    //implementation to intercept cast and return a mocked user for unit tests.
+    public CustomUserDetails castToCustomUserDetails(UserDetails userDetails) {
+        return (CustomUserDetails) userDetails;
+    }
 
     @Transactional
     public Recipe createNewRecipe(Recipe recipe) throws IllegalArgumentException {

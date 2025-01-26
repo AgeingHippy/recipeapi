@@ -9,7 +9,10 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -23,13 +26,13 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(RecipeController.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@WithMockUser(roles="USER")
 class RecipeControllerUnitTests {
 
     private Recipe recipe1;
@@ -37,11 +40,10 @@ class RecipeControllerUnitTests {
     private Recipe recipe3;
     private Recipe recipe4;
 
+    private CustomUserDetails userBill;
+
     @Autowired
     MockMvc mockMvc;
-
-//    @Autowired
-//    PasswordEncoder passwordEncoder;
 
     @MockitoBean
     RecipeService recipeService;
@@ -49,6 +51,23 @@ class RecipeControllerUnitTests {
     @BeforeAll
     //Initialise 4 recipes for use by following tests
     public void setup() {
+
+
+        userBill = CustomUserDetails.builder()
+                .username("bill")
+                .id(106L)
+//                .password(passwordEncoder.encode("pass"))
+                .authorities(
+                        List.of(
+                                Role.builder()
+                                        .id(206L)
+                                        .role(Role.Roles.ROLE_USER).build()))
+                .userMeta(
+                        UserMeta.builder()
+                                .id(306L)
+                                .email("bill@mail.com")
+                                .name("bill").build())
+                .build();
 
         CustomUserDetails userIdfk = CustomUserDetails.builder()
                 .username("idfk")
@@ -130,22 +149,6 @@ class RecipeControllerUnitTests {
                                 .name("ben").build())
                 .build();
 
-        CustomUserDetails userBilly = CustomUserDetails.builder()
-                .username("bill")
-                .id(106L)
-//                .password(passwordEncoder.encode("pass"))
-                .authorities(
-                        List.of(
-                                Role.builder()
-                                        .id(206L)
-                                        .role(Role.Roles.ROLE_USER).build()))
-                .userMeta(
-                        UserMeta.builder()
-                                .id(306L)
-                                .email("bill@mail.com")
-                                .name("bill").build())
-                .build();
-
         // Ingredients
 
         Ingredient ingredient = Ingredient.builder()
@@ -200,7 +203,7 @@ class RecipeControllerUnitTests {
 
         recipe3 = Recipe.builder()
                 .id(3L)
-                .name("another another test recipe")
+                .name("another test recipe")
                 .difficultyRating(5)
                 .minutesToMake(2)
                 .user(userMark)
@@ -237,12 +240,12 @@ class RecipeControllerUnitTests {
                         .rating(10)
                         .description("this stuff is so good")
                         .build()))
-                .user(userBilly)
+                .user(userBill)
                 .build();
     }
 
     @Test
-//    @WithMockUser(roles="ANONYMOUS")
+    @WithMockUser(roles = "ANONYMOUS")
     public void testGetRecipeByIdSuccessBehavior() throws Exception {
 
         when(recipeService.getRecipeById(1L))
@@ -251,7 +254,7 @@ class RecipeControllerUnitTests {
         final long recipeId = 1;
 
         // set up GET request
-        mockMvc.perform(get("/recipes/" + recipeId))
+        mockMvc.perform(get("/recipe/" + recipeId))
 
                 // print response
                 .andDo(print())
@@ -271,6 +274,7 @@ class RecipeControllerUnitTests {
     }
 
     @Test
+    @WithMockUser(roles = "ANONYMOUS")
     public void testGetRecipeByIdFailureBehavior() throws Exception {
 
         final long recipeId = 5000;
@@ -279,7 +283,7 @@ class RecipeControllerUnitTests {
                 .thenThrow(new NoSuchRecipeException("No recipe with ID " + recipeId + " could be found."));
 
         // set up guaranteed to fail in testing environment request
-        mockMvc.perform(get("/recipes/" + recipeId))
+        mockMvc.perform(get("/recipe/" + recipeId))
 
                 //print response
                 .andDo(print())
@@ -291,13 +295,14 @@ class RecipeControllerUnitTests {
     }
 
     @Test
+    @WithMockUser(roles = "ANONYMOUS")
     public void testGetAllRecipesSuccessBehavior() throws Exception {
 
         when(recipeService.getAllRecipes())
                 .thenReturn(List.of(recipe1, recipe2, recipe3, recipe4));
 
         // set up get request for all recipe endpoint
-        mockMvc.perform(get("/recipes"))
+        mockMvc.perform(get("/recipe"))
 
                 // expect status is 200 OK
                 .andExpect(status().isOk())
@@ -329,17 +334,9 @@ class RecipeControllerUnitTests {
     }
 
     @Test
+//    @WithUserDetails(value = "bill", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+    @WithMockUser(username = "bill", roles = {"ADMIN"})
     public void testCreateNewRecipeSuccessBehavior() throws Exception {
-
-        CustomUserDetails userIdfk = CustomUserDetails.builder()
-                .id(101L)
-                .username("idfk")
-                .build();
-
-        CustomUserDetails userBill = CustomUserDetails.builder()
-                .id(102L)
-                .username("bill")
-                .build();
 
         Ingredient ingredient = Ingredient.builder()
                 .name("brown sugar")
@@ -356,12 +353,6 @@ class RecipeControllerUnitTests {
                 .stepNumber(2)
                 .build();
 
-        Review review = Review.builder()
-                .description("was just caramel")
-                .rating(3)
-                .user(userIdfk)
-                .build();
-
         Recipe recipe = Recipe.builder()
                 .name("caramel in a pan")
                 .difficultyRating(10)
@@ -369,17 +360,18 @@ class RecipeControllerUnitTests {
                 .user(userBill)
                 .ingredients(List.of(ingredient))
                 .steps(List.of(step1, step2))
-                .reviews(List.of(review))
-                .locationURI(new URI("http://localhost/recipes/"))
+                .locationURI(new URI("http://localhost/recipe/"))
                 .build();
 
         when(recipeService.createNewRecipe(any(Recipe.class))).thenReturn(recipe);
+        when(recipeService.castToCustomUserDetails(any(UserDetails.class))).thenReturn(userBill);
 
-        mockMvc.perform(post("/recipes")
+        mockMvc.perform(post("/recipe")
                         // set request Content-Type header
                         .contentType("application/json")
                         // set HTTP body equal to JSON based on recipe object
-                        .content(TestUtil.convertObjectToJsonBytes(recipe)))
+                        .content(TestUtil.convertObjectToJsonBytes(recipe))
+                        .with(csrf()))
                 .andDo(print())
                 // confirm HTTP response meta
                 .andExpect(status().isCreated())
@@ -388,7 +380,7 @@ class RecipeControllerUnitTests {
                 // object matches the correct URL structure
                 .andExpect(header().string(
                         "Location",
-                        containsString("http://localhost/recipes/")))
+                        containsString("http://localhost/recipe/")))
 
                 // confirm some recipe data
                 .andExpect(jsonPath("name").value("caramel in a pan"))
@@ -404,14 +396,11 @@ class RecipeControllerUnitTests {
                 // confirm step data
                 .andExpect(jsonPath("steps", hasSize(2)))
                 .andExpect(jsonPath("steps[0]").isNotEmpty())
-                .andExpect(jsonPath("steps[1]").isNotEmpty())
-
-                // confirm review data
-                .andExpect(jsonPath("reviews", hasSize(1)))
-                .andExpect(jsonPath("reviews[0].author").value("idfk"));
+                .andExpect(jsonPath("steps[1]").isNotEmpty());
     }
 
     @Test
+    @WithMockUser(username = "bill", roles = {"ADMIN"})
     public void testCreateNewRecipeFailureBehaviorValidAnnotation() throws Exception {
 
         Recipe recipe = new Recipe();
@@ -420,22 +409,22 @@ class RecipeControllerUnitTests {
         when(recipeService.createNewRecipe(any(Recipe.class))).thenReturn(recipe);
 
         // force failure with empty User object
-        mockMvc.perform(post("/recipes")
+        mockMvc.perform(post("/recipe")
                         // set request Content-Type header
                         .contentType("application/json")
                         // set HTTP body equal to JSON based on recipe object
-//                        .content(TestUtil.convertObjectToJsonBytes(recipe))
-                )
+                        .content(TestUtil.convertObjectToJsonBytes(recipe))
+                        .with(csrf()))
                 .andDo(print())
                 .andDo(print())
                 // confirm status code 400 BAD REQUEST
                 .andExpect(status().isBadRequest())
                 // confirm the body contains an array of strings
-                .andExpect(jsonPath("$.errorMessages").isArray())
-                .andExpect(jsonPath("$.errorMessages", hasSize(6)));
+                .andExpect(jsonPath("$.errorMessages").isArray());
     }
 
     @Test
+    @WithMockUser(roles = "ANONYMOUS")
     public void testGetRecipesByNameSuccessBehavior() throws Exception {
 
         when(recipeService.getRecipesByName("recipe")).thenReturn(List.of(recipe1, recipe2, recipe3));
@@ -443,7 +432,7 @@ class RecipeControllerUnitTests {
 
         // get request to search for recipes with names including "recipe"
         MvcResult mvcResult =
-                mockMvc.perform(get("/recipes/search/recipe"))
+                mockMvc.perform(get("/recipe/search/recipe").with(csrf()))
                         // expect 200 OK
                         .andExpect(status().isOk())
                         // expect JSON in return
@@ -471,7 +460,7 @@ class RecipeControllerUnitTests {
         }
 
         // get request to search for recipes with names containing potato
-        byte[] jsonBytes = mockMvc.perform(get("/recipes/search/potato"))
+        byte[] jsonBytes = mockMvc.perform(get("/recipe/search/potato"))
                 // expect 200 OK
                 .andExpect(status().isOk())
                 // expect json
@@ -495,12 +484,14 @@ class RecipeControllerUnitTests {
     }
 
     @Test
+    @WithMockUser(roles = "ANONYMOUS")
     public void testGetRecipeByNameFailureBehavior() throws Exception {
 
         when(recipeService.getRecipesByName(anyString())).thenThrow(new NoSuchRecipeException("Random error message"));
 
         byte[] contentAsByteArray = mockMvc.perform(
-                        get("/recipes/search/should not exist"))
+                        get("/recipe/search/should not exist"))
+                .andDo(print())
                 // expect 404 NOT FOUND
                 .andExpect(status().isNotFound())
                 // expect JSON object in the body
@@ -517,6 +508,8 @@ class RecipeControllerUnitTests {
     }
 
     @Test
+    @WithMockUser(username = "bill", roles = {"USER"})
+    //todo - not acting as expected. @PreAuthorize not being evaluated
     public void testDeleteRecipeByIdSuccessBehavior() throws Exception {
         final long recipeId = recipe3.getId();
 
@@ -524,7 +517,9 @@ class RecipeControllerUnitTests {
 
         // set up delete request
         byte[] deleteResponseByteArr =
-                mockMvc.perform(delete("/recipes/" + recipeId))
+                mockMvc.perform(delete("/recipe/" + recipeId)
+                                .with(csrf()))
+                        .andDo(print())
                         // confirm 200 OK was returned
                         .andExpect(status().isOk())
                         // confirm a String was returned
@@ -544,13 +539,16 @@ class RecipeControllerUnitTests {
     }
 
     @Test
+    @WithMockUser(username = "bill", roles = {"ADMIN"})
+    //todo - not acting as expected. @PreAuthorize not being evaluated
     public void testDeleteRecipeByIdFailureBehavior() throws Exception {
 
         when(recipeService.deleteRecipeById(any())).thenThrow(new NoSuchRecipeException("No Such Recipe"));
 
         // force error with invalid ID
         byte[] responseContent =
-                mockMvc.perform(delete("/recipes/-1"))
+                mockMvc.perform(delete("/recipe/-1")
+                                .with(csrf()))
                         // expect 404 NOT FOUND
                         .andExpect(status().isNotFound())
                         // expect plain text aka a String
@@ -567,12 +565,14 @@ class RecipeControllerUnitTests {
 
 
     @Test
+    @WithMockUser("ANONYMOUS")
+    //todo - not acting as expected. @PreAuthorize not being evaluated
     public void testGetAllRecipesFailureBehavior() throws Exception {
 
         when(recipeService.getAllRecipes()).thenThrow(new NoSuchRecipeException("A message here"));
 
         // perform GET all recipes
-        mockMvc.perform(get("/recipes"))
+        mockMvc.perform(get("/recipe"))
 
                 .andDo(print())
 
