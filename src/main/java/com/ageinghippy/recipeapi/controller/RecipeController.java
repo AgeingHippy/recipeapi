@@ -2,13 +2,13 @@ package com.ageinghippy.recipeapi.controller;
 
 import com.ageinghippy.recipeapi.exception.NoSuchIngredientException;
 import com.ageinghippy.recipeapi.exception.NoSuchRecipeException;
-import com.ageinghippy.recipeapi.model.CustomUserDetails;
 import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.service.RecipeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -25,9 +25,12 @@ public class RecipeController {
     @Autowired
     RecipeService recipeService;
 
+    @Autowired
+    CacheManager cacheManager;
+
     @PostMapping
     public ResponseEntity<?> createNewRecipe(@Valid @RequestBody Recipe recipe, Authentication authentication) {
-        recipe.setUser( recipeService.castToCustomUserDetails( (UserDetails) authentication.getPrincipal()));
+        recipe.setUser(recipeService.castToCustomUserDetails((UserDetails) authentication.getPrincipal()));
         Recipe insertedRecipe = recipeService.createNewRecipe(recipe);
         return ResponseEntity.created(insertedRecipe.getLocationURI()).body(insertedRecipe);
     }
@@ -38,6 +41,12 @@ public class RecipeController {
         return ResponseEntity.ok(recipe);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllDodgeCache() throws NoSuchRecipeException {
+        List<Recipe> recipes = recipeService.getAllDodgeCache();
+        return ResponseEntity.ok(recipes);
+    }
+
     @Operation(summary = "Get all recipes matching a set of optional query parameters.",
             description = """
                     Legal combinations of these optional parameters are:-
@@ -46,7 +55,7 @@ public class RecipeController {
                     3) name and maximumDifficultyRating - all recipes with the recipe name containing the provided name AND with a maximum difficulty rating
                     4) username - all recipes with the provided username
                     5) minimumReviewRating - all recipes with the minimum average review rating as provided
-                    
+                                        
                     Note: Provision of an illegal combination will result in a 400 Bad Request
                     """)
     @GetMapping

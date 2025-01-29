@@ -8,6 +8,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 
 @Entity
 @Getter
@@ -15,7 +18,10 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Ingredient {
+public class Ingredient implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1250815745212669345L;
 
     @Id
     @GeneratedValue

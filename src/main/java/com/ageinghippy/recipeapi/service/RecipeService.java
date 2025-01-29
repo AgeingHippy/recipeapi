@@ -10,6 +10,10 @@ import com.ageinghippy.recipeapi.repository.RecipeRepo;
 import com.ageinghippy.recipeapi.utils.Utils;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,8 @@ public class RecipeService {
     }
 
     @Transactional
+    @Caching(put = @CachePut(value = "recipes", key = "#recipe.id"),
+            evict = @CacheEvict(value = "getRecipes", allEntries = true))
     public Recipe createNewRecipe(Recipe recipe) throws IllegalArgumentException {
         if (recipe.getId() != null) {
             throw new IllegalArgumentException("ID cannot be specified for a new recipe");
@@ -39,6 +45,7 @@ public class RecipeService {
         return saveRecipe(recipe);
     }
 
+    @Cacheable(value = "recipes", key = "#id")
     public Recipe getRecipeById(Long id) throws NoSuchRecipeException {
         Optional<Recipe> recipeOptional = recipeRepo.findById(id);
 
@@ -51,6 +58,7 @@ public class RecipeService {
         return recipe;
     }
 
+    @Cacheable(value = "getRecipes", key = "'n-' + #name")
     public List<Recipe> getRecipesByName(String name) throws NoSuchRecipeException {
         List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCase(name);
 
@@ -61,6 +69,7 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    @Cacheable(value = "getRecipes", key = "'a-' + #author")
     public List<Recipe> getRecipesByUsername(String author) throws NoSuchRecipeException {
         List<Recipe> matchingRecipes = recipeRepo.findByUser_username(author);
 
@@ -71,8 +80,9 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    @Cacheable(value = "getRecipes")
     public List<Recipe> getRecipesByNameAndMaximumDifficulty(String name, int maximumDifficultyRating) throws NoSuchRecipeException {
-        List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual(name,maximumDifficultyRating);
+        List<Recipe> matchingRecipes = recipeRepo.findByNameContainingIgnoreCaseAndDifficultyRatingLessThanEqual(name, maximumDifficultyRating);
 
         if (matchingRecipes.isEmpty()) {
             throw new NoSuchRecipeException("No recipes could be found with that name and given maximum difficulty rating.");
@@ -81,6 +91,11 @@ public class RecipeService {
         return matchingRecipes;
     }
 
+    public List<Recipe> getAllDodgeCache() throws NoSuchRecipeException {
+        return getAllRecipes();
+    }
+
+    @Cacheable(value = "getRecipes")
     public List<Recipe> getAllRecipes() throws NoSuchRecipeException {
         List<Recipe> recipes = recipeRepo.findAll();
 
@@ -91,6 +106,7 @@ public class RecipeService {
         return recipes;
     }
 
+    @Cacheable(value = "getRecipes")
     public List<Recipe> getAllRecipesByMinimumReviewRating(int minimumReviewRating) {
         if (minimumReviewRating < 0 || minimumReviewRating > 10) {
             throw new IllegalArgumentException("Minimum rating must be within the range of 0-10");
@@ -99,6 +115,9 @@ public class RecipeService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "recipes", key = "#id"),
+            @CacheEvict(value = "getRecipes", allEntries = true)})
     public Recipe deleteRecipeById(Long id) throws NoSuchRecipeException {
         try {
             Recipe recipe = getRecipeById(id);
@@ -110,6 +129,8 @@ public class RecipeService {
     }
 
     @Transactional
+    @Caching(put = @CachePut(value = "recipes", key = "#recipe.id"),
+            evict = @CacheEvict(value = "getRecipes", allEntries = true))
     public Recipe patchRecipe(Recipe recipe) throws NoSuchRecipeException, NoSuchIngredientException {
         Recipe patchRecipe = getRecipeById(recipe.getId());
 
@@ -168,6 +189,8 @@ public class RecipeService {
     }
 
     @Transactional
+    @Caching(put = @CachePut(value = "recipes", key = "#recipe.id"),
+            evict = @CacheEvict(value = "getRecipes", allEntries = true))
     public Recipe updateRecipe(Recipe recipe, boolean forceIdCheck) throws NoSuchRecipeException {
         try {
             if (forceIdCheck) { //using forceCheck as a PATCH indicator

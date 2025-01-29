@@ -6,6 +6,10 @@ import com.ageinghippy.recipeapi.model.Recipe;
 import com.ageinghippy.recipeapi.model.Review;
 import com.ageinghippy.recipeapi.repository.ReviewRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +24,7 @@ public class ReviewService {
     @Autowired
     RecipeService recipeService;
 
+    @Cacheable(value = "reviews", key = "#id")
     public Review getReviewById(Long id) throws NoSuchReviewException {
         Optional<Review> review = reviewRepo.findById(id);
 
@@ -29,6 +34,7 @@ public class ReviewService {
         return review.get();
     }
 
+    @Cacheable(value = "getReviews", key = "'r-' + #recipeId")
     public List<Review> getReviewByRecipeId(Long recipeId) throws NoSuchRecipeException, NoSuchReviewException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
 
@@ -40,6 +46,7 @@ public class ReviewService {
         return reviews;
     }
 
+    @Cacheable(value = "getReviews", key = "'a-' + #username")
     public List<Review> getReviewByUsername(String username) throws NoSuchReviewException {
         List<Review> reviews = reviewRepo.findByUser_username(username);
 
@@ -49,17 +56,25 @@ public class ReviewService {
         return reviews;
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "getReviews", key = "'r-' + #recipeId"),
+            @CacheEvict(value = "getReviews", key = "'a-' + #review.user.username"),
+            @CacheEvict(value = "getRecipes", allEntries = true)},
+            put = @CachePut(value = "recipe", key = "#recipeId"))
     public Recipe postNewReview(Review review, Long recipeId) throws NoSuchRecipeException {
         Recipe recipe = recipeService.getRecipeById(recipeId);
         if (recipe.getAuthor().equals(review.getAuthor())) {
             throw new IllegalArgumentException("Oy! You cannot post reviews for your own recipes!!");
         }
         recipe.getReviews().add(review);
-        //todo - not returning the saved recipe - see updateRecipe method
-        recipeService.updateRecipe(recipe, false);
-        return recipe;
+
+        return recipeService.updateRecipe(recipe, false);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "getReviews", allEntries = true), //We don't have enough info to be selective
+            @CacheEvict(value = "getRecipes", allEntries = true), //we don't know which recipe is affected
+            @CacheEvict(value = "recipes", allEntries = true)})   //we don't know which recipe is affected
     public Review deleteReviewById(Long id) throws NoSuchReviewException {
         Review review = getReviewById(id);
 
@@ -70,13 +85,18 @@ public class ReviewService {
         return review;
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "getReviews", allEntries = true),
+            @CacheEvict(value = "getRecipes", allEntries = true),
+            @CacheEvict(value = "recipes", allEntries = true)},
+            put = @CachePut(value = "review", key = "#reviewToUpdate.Id"))
     public Review updateReviewById(Review reviewToUpdate) throws NoSuchReviewException {
         try {
             Review review = getReviewById(reviewToUpdate.getId());
             if (reviewToUpdate.getDescription() != null && !reviewToUpdate.getDescription().isEmpty()) {
                 review.setDescription(reviewToUpdate.getDescription());
             }
-            if (reviewToUpdate.getRating() != null ) {
+            if (reviewToUpdate.getRating() != null) {
                 review.setRating(reviewToUpdate.getRating());
             }
 

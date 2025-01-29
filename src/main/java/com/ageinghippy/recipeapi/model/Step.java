@@ -9,13 +9,19 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Entity
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Step {
+public class Step implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 4465479183904380338L;
 
     @Id
     @GeneratedValue

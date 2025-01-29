@@ -12,6 +12,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -23,7 +25,10 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Recipe {
+public class Recipe implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 9170134610650048246L;
 
     @Id
     @GeneratedValue
