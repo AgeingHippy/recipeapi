@@ -8,6 +8,7 @@ import com.ageinghippy.recipeapi.model.Review;
 import com.ageinghippy.recipeapi.service.ReviewService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,9 @@ public class ReviewController {
 
     @Autowired
     ReviewService reviewService;
+
+    @Autowired
+    CacheManager cacheManager;
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getReviewById(@PathVariable("id") Long id) throws NoSuchReviewException {
